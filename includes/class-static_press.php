@@ -867,7 +867,7 @@ SELECT DISTINCT post_author, COUNT(ID) AS count, MAX(post_modified) AS modified
 		}
 		$static_files = array_merge(
 			$this->scan_file(trailingslashit(ABSPATH), '{'.implode(',',$static_files_filter).'}', false),
-			$this->scan_file(trailingslashit(ABSPATH).'wp-admin/', '{'.implode(',',$static_files_filter).'}', true),
+#			$this->scan_file(trailingslashit(ABSPATH).'wp-admin/', '{'.implode(',',$static_files_filter).'}', true), # don't export wp-admin	
 			$this->scan_file(trailingslashit(ABSPATH).'wp-includes/', '{'.implode(',',$static_files_filter).'}', true),
 			$this->scan_file(trailingslashit(WP_CONTENT_DIR), '{'.implode(',',$static_files_filter).'}', true)
 			);
