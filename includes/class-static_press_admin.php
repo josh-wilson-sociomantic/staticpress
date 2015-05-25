@@ -9,7 +9,7 @@ class static_press_admin {
 	const OPTION_STATIC_TIMEOUT = 'StaticPress::timeout';
 	const OPTION_PAGE = 'static-press';
 	const TEXT_DOMAIN = 'static-press';
-	const DEBUG_MODE  = false;
+	const DEBUG_MODE  = true;
 	const ACCESS_LEVEL = 'manage_options';
 
 	static $instance;
