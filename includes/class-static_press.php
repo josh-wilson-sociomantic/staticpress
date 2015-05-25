@@ -142,7 +142,7 @@ CREATE TABLE `{$this->url_table}` (
 		global $wpdb;
 
 		if (!defined('WP_DEBUG_DISPLAY'))
-			define('WP_DEBUG_DISPLAY', false);
+			define('WP_DEBUG_DISPLAY', true);
 
 		if (!is_user_logged_in())
 			wp_die('Forbidden');
@@ -166,7 +166,7 @@ CREATE TABLE `{$this->url_table}` (
 			wp_die('Forbidden');
 
 		if (!defined('WP_DEBUG_DISPLAY'))
-			define('WP_DEBUG_DISPLAY', false);
+			define('WP_DEBUG_DISPLAY', true);
 
 		$url = $this->fetch_url();
 		if (!$url) {
@@ -234,7 +234,7 @@ CREATE TABLE `{$this->url_table}` (
 
 	public function ajax_finalyze(){
 		if (!defined('WP_DEBUG_DISPLAY'))
-			define('WP_DEBUG_DISPLAY', false);
+			define('WP_DEBUG_DISPLAY', true);
 
 		if (!is_user_logged_in())
 			wp_die('Forbidden');

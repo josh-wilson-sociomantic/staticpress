@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: StaticPress
-Author: wokamoto
+Plugin Name: StaticPress (pst)
+Author: wokamoto, psteichen
 Plugin URI: http://en.staticpress.net/
 Description: Transform your WordPress into static websites and blogs.
 Version: 0.4.3.7
@@ -14,6 +14,7 @@ License:
   http://www.gnu.org/copyleft/gpl.html
 
   Copyright 2013 - 2014 (email : wokamoto@digitalcube.jp)
+  Copyright 2015 (email : pst@libre.lu)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
