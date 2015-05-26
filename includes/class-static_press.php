@@ -25,12 +25,12 @@ class static_press {
 		'gz','zip', 'pdf', 'swf', 'xsl',
 		);
 
-	function __construct($plugin_basename, $static_url = '/', $static_dir = '', $remote_get_option = array()){
+	function __construct($plugin_basename, $static_url = '/', $static_dir = '', $remote_get_option = array(), $exclude_folders = 'node_modules' ){
 		self::$instance = $this;
 
 		$this->plugin_basename = $plugin_basename;
 		$this->url_table = self::url_table();
-		$this->init_params($static_url, $static_dir, $remote_get_option);
+		$this->init_params($static_url, $static_dir, $remote_get_option, $exclude_folders );
 
 		add_action('wp_ajax_static_press_init', array($this, 'ajax_init'));
 		add_action('wp_ajax_static_press_fetch', array($this, 'ajax_fetch'));
@@ -42,7 +42,7 @@ class static_press {
 		return $wpdb->prefix.'urls';
 	}
 
-	private function init_params($static_url, $static_dir, $remote_get_option){
+	private function init_params($static_url, $static_dir, $remote_get_option, $exclude_folders){
 		global $wpdb;
 
 		$parsed   = parse_url($this->get_site_url());
@@ -50,13 +50,14 @@ class static_press {
 			isset($parsed['scheme'])
 			? $parsed['scheme']
 			: 'http';
-		$host     = 
+		$host     =
 			isset($parsed['host'])
 			? $parsed['host']
 			: (defined('DOMAIN_CURRENT_SITE') ? DOMAIN_CURRENT_SITE : $_SERVER['HTTP_HOST']);
 		$this->home_url = "{$scheme}://{$host}/";
 		$this->static_url = preg_match('#^https?://#i', $static_url) ? $static_url : $this->home_url;
 		$this->static_home_url = preg_replace('#^https?://[^/]+/#i', '/', trailingslashit($this->static_url));
+		$this->exclude_folders = array_map('trim',  explode( ',', $exclude_folders ) );
 
 		$this->static_dir = untrailingslashit(!empty($static_dir) ? $static_dir : ABSPATH);
 		if (preg_match('#^https?://#i', $this->static_home_url)) {
@@ -138,7 +139,7 @@ CREATE TABLE `{$this->url_table}` (
 		die();
 	}
 
-	public function ajax_init(){
+	public function ajax_init( ){
 		global $wpdb;
 
 		if (!defined('WP_DEBUG_DISPLAY'))
@@ -147,7 +148,7 @@ CREATE TABLE `{$this->url_table}` (
 		if (!is_user_logged_in())
 			wp_die('Forbidden');
 
-		$urls = $this->insert_all_url();
+		$urls = $this->insert_all_url( );
 		$sql = $wpdb->prepare(
 			"select type, count(*) as count from {$this->url_table} where `last_upload` < %s and enable = 1 group by type",
 			$this->fetch_start_time()
@@ -258,7 +259,7 @@ CREATE TABLE `{$this->url_table}` (
 
 	public function static_url($permalink) {
 		return urldecode(
-			preg_match('/\.[^\.]+?$/i', $permalink) 
+			preg_match('/\.[^\.]+?$/i', $permalink)
 			? $permalink
 			: trailingslashit(trim($permalink)) . 'index.html');
 	}
@@ -533,8 +534,8 @@ CREATE TABLE `{$this->url_table}` (
 		return $content;
 	}
 
-	private function insert_all_url(){
-		$urls = $this->get_urls();
+	private function insert_all_url( $exclude_folders ){
+		$urls = $this->get_urls( $exclude_folders );
 		return $this->update_url($urls);
 	}
 
@@ -831,7 +832,7 @@ select MAX(P.post_modified) as last_modified, count(P.ID) as count
 
 		$authors = $wpdb->get_results("
 SELECT DISTINCT post_author, COUNT(ID) AS count, MAX(post_modified) AS modified
- FROM {$wpdb->posts} 
+ FROM {$wpdb->posts}
  where post_status = 'publish'
    and post_type in ({$this->post_types})
  group by post_author
@@ -867,7 +868,7 @@ SELECT DISTINCT post_author, COUNT(ID) AS count, MAX(post_modified) AS modified
 		}
 		$static_files = array_merge(
 			$this->scan_file(trailingslashit(ABSPATH), '{'.implode(',',$static_files_filter).'}', false),
-#			$this->scan_file(trailingslashit(ABSPATH).'wp-admin/', '{'.implode(',',$static_files_filter).'}', true), # don't export wp-admin	
+#			$this->scan_file(trailingslashit(ABSPATH).'wp-admin/', '{'.implode(',',$static_files_filter).'}', true), # don't export wp-admin
 			$this->scan_file(trailingslashit(ABSPATH).'wp-includes/', '{'.implode(',',$static_files_filter).'}', true),
 			$this->scan_file(trailingslashit(WP_CONTENT_DIR), '{'.implode(',',$static_files_filter).'}', true)
 			);
@@ -898,7 +899,7 @@ SELECT DISTINCT post_author, COUNT(ID) AS count, MAX(post_modified) AS modified
 			);
 		$count = intval($wpdb->get_var($sql));
 		wp_cache_set('StaticPress::'.$link, $count, 'static_press');
-		
+
 		return $count > 0;
 	}
 
@@ -934,7 +935,29 @@ SELECT DISTINCT post_author, COUNT(ID) AS count, MAX(post_modified) AS modified
 		return $urls;
 	}
 
+	private function dir_is_excluded( $dir, $excluded_folders = array() )
+	{
+	    foreach( $excluded_folders as $folder ) {
+	        if ( stripos( $dir, $folder ) !== false ) return true;
+	    }
+	    return false;
+	}
+
 	private function scan_file($dir, $target = false, $recursive = true) {
+
+		$excluded_folders = array();
+
+		if ( count( $this->exclude_folders ) > 0 )
+		{
+			$excluded_folders = $this->exclude_folders;
+		}
+
+		if( $this->dir_is_excluded( $dir, $excluded_folders ) )
+		{
+			return null;
+		}
+
+
 		if (!$target) {
 			$static_files_filter = apply_filters('StaticPress::static_files_filter', $this->static_files_ext);
 			foreach ($static_files_filter as &$file_ext) {
@@ -967,7 +990,7 @@ SELECT DISTINCT post_author, COUNT(ID) AS count, MAX(post_modified) AS modified
 		    (?: [\x00-\x7F]                 # single-byte sequences   0xxxxxxx
 		    |   [\xC0-\xDF][\x80-\xBF]      # double-byte sequences   110xxxxx 10xxxxxx
 		    |   [\xE0-\xEF][\x80-\xBF]{2}   # triple-byte sequences   1110xxxx 10xxxxxx * 2
-		    |   [\xF0-\xF7][\x80-\xBF]{3}   # quadruple-byte sequence 11110xxx 10xxxxxx * 3 
+		    |   [\xF0-\xF7][\x80-\xBF]{3}   # quadruple-byte sequence 11110xxx 10xxxxxx * 3
 		    ){1,100}                        # ...one or more times
 		  )
 		| .                                 # anything else

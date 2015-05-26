@@ -8,6 +8,7 @@ class static_press_admin {
 	const OPTION_STATIC_BASIC = 'StaticPress::basic auth';
 	const OPTION_STATIC_TIMEOUT = 'StaticPress::timeout';
 	const OPTION_PAGE = 'static-press';
+	const OPTION_EXCLUDE_FOLDERS  = 'node_modules';
 	const TEXT_DOMAIN = 'static-press';
 	const DEBUG_MODE  = true;
 	const ACCESS_LEVEL = 'manage_options';
@@ -20,6 +21,7 @@ class static_press_admin {
 
 	private $static_url;
 	private $static_dir;
+	private $exclude_folders;
 	private $basic_auth;
 	private $timeout;
 	private $admin_action;
@@ -29,6 +31,7 @@ class static_press_admin {
 
 		$this->static_url = self::static_url();
 		$this->static_dir = self::static_dir();
+		$this->exclude_folders = self::exclude_folders();
 		$this->basic_auth = self::basic_auth();
 		$this->timeout    = self::timeout();
 		$this->plugin_basename = $plugin_basename;
@@ -53,6 +56,10 @@ class static_press_admin {
 
 	static public function static_dir(){
 		return get_option(self::OPTION_STATIC_DIR, ABSPATH);
+	}
+
+	static public function exclude_folders(){
+		return get_option(self::OPTION_EXCLUDE_FOLDERS, 'node_modules');
 	}
 
 	static public function basic_auth(){
@@ -145,6 +152,7 @@ class static_press_admin {
 		$iv->set_rules($nonce_name, 'required');
 		$iv->set_rules('static_url', array('trim','esc_html'));
 		$iv->set_rules('static_dir', array('trim','esc_html'));
+		$iv->set_rules('exclude_folders', array('trim','esc_html'));
 		$iv->set_rules('basic_usr',  array('trim','esc_html'));
 		$iv->set_rules('basic_pwd',  array('trim','esc_html'));
 		$iv->set_rules('timeout',    'numeric');
@@ -154,6 +162,7 @@ class static_press_admin {
 			// Get posted options
 			$static_url = $iv->input('static_url');
 			$static_dir = $iv->input('static_dir');
+			$exclude_folders = $iv->input('exclude_folders');
 			$basic_usr  = $iv->input('basic_usr');
 			$basic_pwd  = $iv->input('basic_pwd');
 			$timeout    = $iv->input('timeout');
@@ -165,6 +174,7 @@ class static_press_admin {
 			// Update options
 			update_option(self::OPTION_STATIC_URL, $static_url);
 			update_option(self::OPTION_STATIC_DIR, $static_dir);
+			update_option(self::OPTION_EXCLUDE_FOLDERS, $exclude_folders);
 			update_option(self::OPTION_STATIC_BASIC, $basic_auth);
 			update_option(self::OPTION_STATIC_TIMEOUT, $timeout);
 			printf(
@@ -174,6 +184,7 @@ class static_press_admin {
 
 			$this->static_url = $static_url;
 			$this->static_dir = $static_dir;
+			$this->exclude_folders = $exclude_folders;
 			$this->basic_auth = $basic_auth;
 			$this->timeout    = $timeout;
 
@@ -192,6 +203,7 @@ class static_press_admin {
 		<table class="wp-list-table fixed"><tbody>
 		<?php $this->input_field('static_url', __('Static URL', self::TEXT_DOMAIN), $this->static_url); ?>
 		<?php $this->input_field('static_dir', __('Save DIR (Document root)', self::TEXT_DOMAIN), $this->static_dir); ?>
+		<?php $this->input_field('exclude_folders', __('Folders to Exclude (string of comma separated folder names)', self::TEXT_DOMAIN), $this->exclude_folders); ?>
 		<?php $this->input_field('basic_usr', __('(OPTION) BASIC Auth User', self::TEXT_DOMAIN), $basic_usr); ?>
 		<?php $this->input_field('basic_pwd', __('(OPTION) BASIC Auth Password', self::TEXT_DOMAIN), $basic_pwd, 'password'); ?>
 		<?php $this->input_field('timeout', __('(OPTION) Request Timeout', self::TEXT_DOMAIN), $this->timeout); ?>
