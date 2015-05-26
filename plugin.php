@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: StaticPress (pst)
+Plugin Name: StaticPress (joshuef)
 Author: wokamoto, psteichen
 Plugin URI: http://en.staticpress.net/
 Description: Transform your WordPress into static websites and blogs.
@@ -14,7 +14,7 @@ License:
   http://www.gnu.org/copyleft/gpl.html
 
   Copyright 2013 - 2014 (email : wokamoto@digitalcube.jp)
-  Copyright 2015 (email : pst@libre.lu)
+  Copyright 2015 (email : joshuef@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,8 +40,9 @@ load_plugin_textdomain(static_press_admin::TEXT_DOMAIN, false, dirname(plugin_ba
 $staticpress = new static_press(
 	plugin_basename(__FILE__),
 	static_press_admin::static_url(),
-	static_press_admin::static_dir(),
-	static_press_admin::remote_get_option()
+  static_press_admin::static_dir(),
+  static_press_admin::remote_get_option(),
+	static_press_admin::exclude_folders()
 	);
 
 add_filter('StaticPress::get_url', array($staticpress, 'replace_url'));
