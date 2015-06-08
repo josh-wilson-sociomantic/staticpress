@@ -35,11 +35,26 @@ class static_press {
 		add_action('wp_ajax_static_press_init', array($this, 'ajax_init'));
 		add_action('wp_ajax_static_press_fetch', array($this, 'ajax_fetch'));
 		add_action('wp_ajax_static_press_finalyze', array($this, 'ajax_finalyze'));
+
+
+		add_action( 'save_post', array($this, 'staticpress_save_single') );
+
+
 	}
 
 	static public function url_table(){
 		global $wpdb;
 		return $wpdb->prefix.'urls';
+	}
+
+
+	public function staticpress_save_single( $postId )
+	{
+		if( get_post_status( $postId ) === 'publish' &&  ! post_password_required( $postId )  )
+		{
+		    $url = get_permalink( $postId );
+		    $this->create_static_file($url, 'other_page', false, true);
+		}
 	}
 
 	private function init_params($static_url, $static_dir, $remote_get_option, $exclude_folders){
@@ -362,6 +377,7 @@ CREATE TABLE `{$this->url_table}` (
 	}
 
 	private function create_static_file($url, $file_type = 'other_page', $create_404 = true, $crawling = false) {
+
 		$url = apply_filters('StaticPress::get_url', $url);
 		$file_dest = untrailingslashit($this->static_dir) . $this->static_url($url);
 		$dir_sep = defined('DIRECTORY_SEPARATOR') ? DIRECTORY_SEPARATOR : '/';
@@ -377,6 +393,7 @@ CREATE TABLE `{$this->url_table}` (
 		case 'author_archive':
 		case 'other_page':
 			// get remote file
+
 			if (($content = $this->remote_get($url)) && isset($content['body'])) {
 				if ($blog_charset === 'UTF-8') {
 					$content['body'] = $this->clean_utf8($content['body']);
@@ -441,8 +458,13 @@ CREATE TABLE `{$this->url_table}` (
 		if (!preg_match('#^https://#i', $url))
 			$url = untrailingslashit($this->get_site_url()) . (preg_match('#^/#i', $url) ? $url : "/{$url}");
 		$response = wp_remote_get($url, $this->remote_get_option);
+
 		if (is_wp_error($response))
+		{
+			error_log( print_r( $response, true ) );
 			return false;
+		}
+
 		return array(
 			'code' => $response['response']['code'],
 			'body' => $this->remove_link_tag($response['body'], intval($response['response']['code'])),

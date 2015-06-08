@@ -55,5 +55,6 @@ add_filter('StaticPress::put_content', array($staticpress, 'replace_relative_URI
 register_activation_hook(__FILE__, array($staticpress, 'activate'));
 register_deactivation_hook(__FILE__, array($staticpress, 'deactivate'));
 
+
 if (is_admin())
 	new static_press_admin(plugin_basename(__FILE__));
