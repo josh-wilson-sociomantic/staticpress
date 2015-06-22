@@ -265,6 +265,7 @@ CREATE TABLE `{$this->url_table}` (
 	public function replace_url($url){
 		$site_url = trailingslashit($this->get_site_url());
 		$url = trim(str_replace($site_url, '/', $url));
+        // $url = preg_match( '^//', $url ) ? trim($url) : trim(str_replace($site_url, '/', $url));
 		$static_files_filter = apply_filters('StaticPress::static_files_filter', $this->static_files_ext);
 		if (!preg_match('#[^/]+\.' . implode('|', array_merge($static_files_filter, array('php'))) . '$#i', $url))
 			$url = trailingslashit($url);
