@@ -37,8 +37,11 @@ class static_press {
 		add_action('wp_ajax_static_press_finalyze', array($this, 'ajax_finalyze'));
 
 
-		add_action( 'save_post', array($this, 'staticpress_save_single') );
+		add_action( 'save_post', array( $this, 'staticpress_save_single' ) );
 
+        add_action( 'wp_trash_post', array( $this, 'staticpress_page_path_to_delete' ) );
+
+        add_action( 'post_updated', array( $this, 'staticpress_page_delete_unpublish' ), 10, 3 );
 
 	}
 
@@ -47,15 +50,56 @@ class static_press {
 		return $wpdb->prefix.'urls';
 	}
 
-
 	public function staticpress_save_single( $postId )
 	{
 		if( get_post_status( $postId ) === 'publish' &&  ! post_password_required( $postId )  )
 		{
 		    $url = get_permalink( $postId );
-		    $this->create_static_file($url, 'other_page', false, true);
+		    $this->create_static_file( $url, 'other_page', false, true );
 		}
 	}
+
+    // public function staticpress_page_path( $postId, $static_dir )
+    public function staticpress_page_path_to_delete( $postId )
+    {
+        $url = get_permalink( $postId );
+        // $static_directory = $static_dir . 'cn';
+        $static_dir = '/home/damian/projects/cn.static.sociomantic.com/';
+        $path = str_replace( get_bloginfo( 'url' ), $static_dir . 'cn', $url );
+        $this->delete_staticpress_page( $path );
+    }
+
+    public function staticpress_page_delete_unpublish( $post_ID, $post_after, $post_before )
+    {
+        if( $post_before->post_status === 'publish' && ( $post_after->post_status === 'draft'
+            || $post_after->post_status === 'pending') )
+        {
+            $this->staticpress_page_path_to_delete( $post_ID );
+        }
+    }
+
+
+    public function delete_staticpress_page( $path )
+    {
+        if( is_dir( $path ) === true )
+        {
+            $files = array_diff( scandir( $path ), array( '.', '..') );
+
+            foreach( $files as $file )
+            {
+                $this->delete_staticpress_page( realpath( $path ) . '/' . $file);
+            }
+
+            return rmdir( $path );
+        }
+
+        else if( is_file( $path ) === true )
+        {
+            return unlink( $path );
+        }
+
+        return false;
+    }
 
 	private function init_params($static_url, $static_dir, $remote_get_option, $exclude_folders){
 		global $wpdb;
@@ -239,6 +283,7 @@ CREATE TABLE `{$this->url_table}` (
 				'type' => $url->type,
 				'url' => $url->url,
 				'static' => $static_file,
+                'merda' => untrailingslashit($this->static_dir) . $this->static_url($url->url)
 				);
 			if ($file_count >= $limit)
 				break;
@@ -380,6 +425,7 @@ CREATE TABLE `{$this->url_table}` (
 	private function create_static_file($url, $file_type = 'other_page', $create_404 = true, $crawling = false) {
 
 		$url = apply_filters('StaticPress::get_url', $url);
+
 		$file_dest = untrailingslashit($this->static_dir) . $this->static_url($url);
 		$dir_sep = defined('DIRECTORY_SEPARATOR') ? DIRECTORY_SEPARATOR : '/';
 		if ( $dir_sep !== '/' )
