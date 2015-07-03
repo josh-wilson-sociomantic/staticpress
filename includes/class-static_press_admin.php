@@ -20,7 +20,7 @@ class static_press_admin {
 	private $plugin_version;
 
 	private $static_url;
-	private $static_dir;
+	public  $static_dir;
 	private $exclude_folders;
 	private $basic_auth;
 	private $timeout;

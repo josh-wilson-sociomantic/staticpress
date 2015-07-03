@@ -38,11 +38,7 @@ class static_press {
 
 
 		add_action( 'save_post', array( $this, 'staticpress_save_single' ) );
-
-        add_action( 'wp_trash_post', array( $this, 'staticpress_page_path_to_delete' ) );
-
-        add_action( 'post_updated', array( $this, 'staticpress_page_delete_unpublish' ), 10, 3 );
-
+        add_action( 'transition_post_status', array( $this, 'staticpress_page_delete_unpublish' ), 10, 3 );
 	}
 
 	static public function url_table(){
@@ -59,25 +55,25 @@ class static_press {
 		}
 	}
 
-    // public function staticpress_page_path( $postId, $static_dir )
-    public function staticpress_page_path_to_delete( $postId )
+    public function staticpress_page_delete_unpublish( $new_status, $old_status, $post )
     {
-        $url = get_permalink( $postId );
-        // $static_directory = $static_dir . 'cn';
-        $static_dir = '/home/damian/projects/cn.static.sociomantic.com/';
-        $path = str_replace( get_bloginfo( 'url' ), $static_dir . 'cn', $url );
-        $this->delete_staticpress_page( $path );
-    }
-
-    public function staticpress_page_delete_unpublish( $post_ID, $post_after, $post_before )
-    {
-        if( $post_before->post_status === 'publish' && ( $post_after->post_status === 'draft'
-            || $post_after->post_status === 'pending') )
+        if(  $new_status === 'trash' || $new_status === 'draft' || $new_status === 'pending' )
         {
-            $this->staticpress_page_path_to_delete( $post_ID );
+            $this->staticpress_page_path_to_delete( $post );
         }
     }
 
+    public function staticpress_page_path_to_delete( $post )
+    {
+        $post_name = $post->post_name . '/';
+        if( $post_name !== '/' )
+        { 
+            $admin_static = new static_press_admin();
+            $path = $admin_static->static_dir . $post_name;
+            $this->delete_staticpress_page( $path ); 
+        }
+        error_log( print_r( $path, true ) );
+    }
 
     public function delete_staticpress_page( $path )
     {
