@@ -1065,14 +1065,14 @@ END;
 	}
 }
 
-function update_static_notice() 
-{
-    $screen = get_current_screen();
-    if( $screen->base === 'appearance_page_theme-settings' || $screen->base === 'nav-menus' )
-    {
-        $class = 'update-nag';
-        $message = 'YOU NEED TO GO TO THE STATICPRESS SETTINGS PAGE AND CLICK "REBUILD" AFTER SAVING CHANGES HERE';
-        echo '<div class=' . $class . '> <p>' . $message . '</p></div>'; 
-    }
-}
-add_action( 'admin_notices', 'update_static_notice' ); 
+// function update_static_notice() 
+// {
+//     $screen = get_current_screen();
+//     if( $screen->base === 'appearance_page_theme-settings' || $screen->base === 'nav-menus' )
+//     {
+//         $class = 'update-nag';
+//         $message = 'YOU NEED TO GO TO THE STATICPRESS SETTINGS PAGE AND CLICK "REBUILD" AFTER SAVING CHANGES HERE';
+//         echo '<div class=' . $class . '> <p>' . $message . '</p></div>'; 
+//     }
+// }
+// add_action( 'admin_notices', 'update_static_notice' ); 
