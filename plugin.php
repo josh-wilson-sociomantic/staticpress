@@ -42,7 +42,8 @@ $staticpress = new static_press(
 	static_press_admin::static_url(),
   static_press_admin::static_dir(),
   static_press_admin::remote_get_option(),
-	static_press_admin::exclude_folders()
+  static_press_admin::exclude_folders(),
+	static_press_admin::remove_from_path()
 	);
 
 add_filter('StaticPress::get_url', array($staticpress, 'replace_url'));

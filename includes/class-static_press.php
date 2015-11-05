@@ -25,12 +25,12 @@ class static_press {
 		'gz','zip', 'pdf', 'swf', 'xsl',
 		);
 
-	function __construct($plugin_basename, $static_url = '/', $static_dir = '', $remote_get_option = array(), $exclude_folders = 'node_modules' ){
+	function __construct($plugin_basename, $static_url = '/', $static_dir = '', $remote_get_option = array(), $exclude_folders = 'node_modules',  $remove_from_path = '' ){
 		self::$instance = $this;
 
 		$this->plugin_basename = $plugin_basename;
 		$this->url_table = self::url_table();
-		$this->init_params($static_url, $static_dir, $remote_get_option, $exclude_folders );
+		$this->init_params($static_url, $static_dir, $remote_get_option, $exclude_folders, $remove_from_path );
 
 		add_action('wp_ajax_static_press_init', array($this, 'ajax_init'));
 		add_action('wp_ajax_static_press_fetch', array($this, 'ajax_fetch'));
@@ -67,10 +67,10 @@ class static_press {
     {
         $post_name = $post->post_name . '/';
         if( $post_name !== '/' )
-        { 
+        {
             $admin_static = new static_press_admin();
             $path = $admin_static->static_dir . $post_name;
-            $this->delete_staticpress_page( $path ); 
+            $this->delete_staticpress_page( $path );
         }
         error_log( print_r( $path, true ) );
     }
@@ -97,7 +97,7 @@ class static_press {
         return false;
     }
 
-	private function init_params($static_url, $static_dir, $remote_get_option, $exclude_folders){
+	private function init_params($static_url, $static_dir, $remote_get_option, $exclude_folders, $remove_from_path){
 		global $wpdb;
 
 		$parsed   = parse_url($this->get_site_url());
@@ -113,6 +113,7 @@ class static_press {
 		$this->static_url = preg_match('#^https?://#i', $static_url) ? $static_url : $this->home_url;
 		$this->static_home_url = preg_replace('#^https?://[^/]+/#i', '/', trailingslashit($this->static_url));
 		$this->exclude_folders = array_map('trim',  explode( ',', $exclude_folders ) );
+		$this->remove_from_path = array_map('trim',  explode( ',', $remove_from_path ) );
 
 		$this->static_dir = untrailingslashit(!empty($static_dir) ? $static_dir : ABSPATH);
 		if (preg_match('#^https?://#i', $this->static_home_url)) {
@@ -420,7 +421,7 @@ CREATE TABLE `{$this->url_table}` (
 
 	private function create_static_file($url, $file_type = 'other_page', $create_404 = true, $crawling = false) {
 
-		$url = apply_filters('StaticPress::get_url', $url);
+		$url = apply_filters('StaticPress::get_url', $this->remove_strings_from_path( $url ) );
 
 		$file_dest = untrailingslashit($this->static_dir) . $this->static_url($url);
 		$dir_sep = defined('DIRECTORY_SEPARATOR') ? DIRECTORY_SEPARATOR : '/';
@@ -599,8 +600,8 @@ CREATE TABLE `{$this->url_table}` (
 		return $content;
 	}
 
-	private function insert_all_url( $exclude_folders ){
-		$urls = $this->get_urls( $exclude_folders );
+	private function insert_all_url( $exclude_folders, $remove_from_path ){
+		$urls = $this->get_urls( $exclude_folders, $remove_from_path );
 		return $this->update_url($urls);
 	}
 
@@ -805,6 +806,36 @@ select ID, post_type, post_content, post_status, post_modified
 				);
 		}
 		return $urls;
+	}
+
+	/**
+	 * Removes any string in the passed array 'remove string sfrom path', and
+	 * will parse out any complete portions of the path that match this string
+	 *
+	 * @param  [string] $path  url-of-page-or-item
+	 */
+	private function remove_strings_from_path( $path )
+	{
+
+		if ( count( $this->remove_from_path ) > 0 )
+		{
+			$strings_to_remove = $this->remove_from_path;
+		}
+
+		$all_path_components = array_map('trim',  explode( '/', $path ) );
+
+		$matches = array_intersect( $all_path_components, $strings_to_remove);
+
+		if( count( $matches ) > 0 )
+		{
+			foreach( $strings_to_remove as $string ) {
+				$pattern = "/(\/$string?)/";
+				$path = preg_replace(  $pattern, '', $path );
+		    }
+
+		}
+
+		return $path;
 	}
 
 	private function get_term_info($term_id) {
@@ -1065,14 +1096,14 @@ END;
 	}
 }
 
-// function update_static_notice() 
+// function update_static_notice()
 // {
 //     $screen = get_current_screen();
 //     if( $screen->base === 'appearance_page_theme-settings' || $screen->base === 'nav-menus' )
 //     {
 //         $class = 'update-nag';
 //         $message = 'YOU NEED TO GO TO THE STATICPRESS SETTINGS PAGE AND CLICK "REBUILD" AFTER SAVING CHANGES HERE';
-//         echo '<div class=' . $class . '> <p>' . $message . '</p></div>'; 
+//         echo '<div class=' . $class . '> <p>' . $message . '</p></div>';
 //     }
 // }
-// add_action( 'admin_notices', 'update_static_notice' ); 
+// add_action( 'admin_notices', 'update_static_notice' );
