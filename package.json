@@ -1,0 +1,21 @@
+
+{
+  "name": "staticpress",
+  "version": "1.0.0",
+  "description": "=== StaticPress === Contributors: wokamoto, megumithemes Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=9S8AJCY7XB8F4&lc=JP&item_name=WordPress%20Plugins&item_number=wp%2dplugins&currency_code=JPY&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted Tags: static Requires at least: 3.5 Tested up to: 4.0.1 Stable tag: 0.4.3.7",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josh-wilson-sociomantic/staticpress.git"
+  },
+  "author": "Josh Wilson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/josh-wilson-sociomantic/staticpress/issues"
+  },
+  "homepage": "https://github.com/josh-wilson-sociomantic/staticpress#readme"
+}
+
