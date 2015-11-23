@@ -22,7 +22,7 @@ class static_press {
 	private $static_files_ext = array(
 		'html','htm','txt','css','js','gif','png','jpg','jpeg',
 		'mp3','ico','ttf','woff','woff2', 'otf','eot','svg','svgz','xml',
-		'gz','zip', 'pdf', 'swf', 'xsl',
+		'gz','zip', 'pdf', 'swf', 'xsl', 'mp4'
 		);
 
 	function __construct($plugin_basename, $static_url = '/', $static_dir = '', $remote_get_option = array(), $exclude_folders = 'node_modules',  $remove_from_path = '' ){
